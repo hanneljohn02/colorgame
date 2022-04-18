@@ -1,41 +1,87 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
+var userClickedPattern = [];
 
-<head>
-  <meta charset="utf-8">
-  <title>Simon</title>
-  <link rel="stylesheet" href="styles.css">
-  <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
-</head>
+var gamePattern = [];
 
-<body>
-  <h1 id="level-title">Press a Key to Start</h1>
-  <div class="container">
-    <div lass="row">
+var buttonColors = ["red", "blue", "green", "yellow"];
 
-      <div type="button" id="green" class="btn green">
+var numberOfColors = buttonColors.length;
 
-      </div>
+var randomChosenColors;
 
-      <div type="button" id="red" class="btn red">
+var level = 0;
 
-      </div>
-    </div>
+var started = 0;
 
-    <div class="row">
+function nextSequence() {
+    var randomNumber = Math.random()
+    randomNumber = (randomNumber * numberOfColors);
+    randomNumber = Math.floor(randomNumber);
+    randomChosenColors = buttonColors[randomNumber];
 
-      <div type="button" id="yellow" class="btn yellow">
+    $('#' + randomChosenColors).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
+    playSound(randomChosenColors);
 
-      </div>
-      <div type="button" id="blue" class="btn blue">
+    gamePattern.push(randomChosenColors);
 
-      </div>
+    level++
+    $("#level-title").text("level " + level);
+}
 
-    </div>
+function playSound(name) {
+    var sounds = new Audio('sounds/' + name + '.mp3');
+    sounds.play();
+    var soundsWrong = new Audio('sounds/' + name + '.mp3')
+    soundsWrong.play();
+}
 
-  </div>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="game.js"></script>
-</body>
+function animatePress(currentColor) {
+    $("#" + currentColor).addClass("pressed");
+    setTimeout(function () {
+        $("#" + currentColor).removeClass("pressed");
+    }, 100);
+}
 
-</html>
+$(".btn").click(function () {
+    var userChosenColor = $(this).attr("id");
+    userClickedPattern.push(userChosenColor);
+
+    animatePress(userChosenColor);
+    playSound(userChosenColor);
+    checkAnswer(userChosenColor);
+});
+
+$("h1").click(function () {
+    if (started === level) {
+        nextSequence()
+        started = 1;
+    }
+});
+
+function checkAnswer(currentLevel) {
+    if (userClickedPattern.indexOf(currentLevel) == gamePattern.indexOf(currentLevel)){
+        console.log("success");
+        if (userClickedPattern.length == gamePattern.length) {
+            setTimeout(function () {
+                nextSequence();
+            }, 1000);
+            userClickedPattern = [];
+            console.log("success");
+        }
+    } else {
+        playSound("wrong");
+        $("body").addClass("game-over");
+        setTimeout(function () {
+            $("body").removeClass("game-over");
+        }, 200);
+        $("#level-title").text("Game Over, tap to restart");
+         startOver();
+        console.log("wrong number yung index ng user pattern")
+    }
+}
+
+function startOver() {
+    level = 0;
+    started = 0;
+    gamePattern = [];
+    userClickedPattern = [];
+}
